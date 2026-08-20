@@ -1,0 +1,47 @@
+name: Build Bilal Daily Routine
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Find Android project
+        run: |
+          echo "Files in repository:"
+          find . -maxdepth 3 -type f | head -100
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build APK
+        run: |
+          if [ -f "gradlew" ]; then
+            chmod +x gradlew
+            ./gradlew assembleDebug
+          elif [ -f "app/build.gradle" ] || [ -f "app/build.gradle.kts" ]; then
+            gradle assembleDebug
+          else
+            echo "ERROR: Android Gradle project not found."
+            exit 1
+          fi
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Bilal-Daily-Routine-APK
+          path: |
+            app/build/outputs/apk/debug/app-debug.apk
+            **/app/build/outputs/apk/debug/app-debug.apk
